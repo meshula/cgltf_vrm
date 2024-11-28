@@ -1154,7 +1154,7 @@ int cgltf_vrm_parse_json_spring_bone_colliders(cgltf_options* options, jsmntok_t
     }
     else if (cgltf_json_strcmp(tokens + i, json_chunk, "shape") == 0)
     {
-      cgltf_size nElems{};
+      cgltf_size nElems;
 
       i += 2;
       out->shape = cgltf_vrm_string_to_spring_bone_collider_shape(tokens + i, json_chunk);
@@ -1978,7 +1978,7 @@ cgltf_result cgltf_vrm_parse_init(cgltf_options *options, char* json_chunk, jsmn
 cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data const* gltf, cgltf_vrm_data* vrm)
 {
   jsmntok_t* tokens = NULL;
-  cgltf_options fixed_options{};
+  cgltf_options fixed_options;
 
   if (options == NULL)
   {
