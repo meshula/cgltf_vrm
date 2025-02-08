@@ -2015,11 +2015,11 @@ cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data
       return result;
     }
 
-    if (strcmp(ext->name, "VRMC_vrm") == 0)
+    if ((strcmp(ext->name, "VRMC_vrm") == 0) || (strcmp(ext->name, "vrm") == 0))
     {
       cgltf_vrm_parse_json_vrm(&fixed_options, tokens, 0, (uint8_t const*)json_chunk, &vrm->core);
     }
-    else if (strcmp(ext->name, "VRMC_springBone") == 0)
+    else if ((strcmp(ext->name, "VRMC_springBone") == 0) || (strcmp(ext->name, "springBone") == 0))
     {
       cgltf_vrm_parse_json_spring_bone(&fixed_options, tokens, 0, (uint8_t const*)json_chunk, &vrm->spring_bone);
       vrm->has_spring_bone = true;
@@ -2037,6 +2037,10 @@ cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data
   for (cgltf_size i = 0; i < gltf->nodes_count; ++i)
   {
     cgltf_extension *ext = cgltf_vrm_get_node_extension(&gltf->nodes[i], "VRMC_node_constraint");
+    if (ext == NULL)
+    {
+      ext = cgltf_vrm_get_node_extension(&gltf->nodes[i], "node_constraint");
+    }
 
     if (ext != NULL)
     {
@@ -2069,6 +2073,10 @@ cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data
   for (cgltf_size i = 0; i < gltf->materials_count; ++i)
   {
     cgltf_extension *ext = cgltf_vrm_get_material_extension(&gltf->materials[i], "VRMC_materials_mtoon");
+    if (ext == NULL)
+    {
+      extension *ext = cgltf_vrm_get_material_extension(&gltf->materials[i], "materials_mtoon");
+    }
 
     if (ext != NULL)
     {
