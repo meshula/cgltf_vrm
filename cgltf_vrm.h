@@ -649,12 +649,48 @@ int cgltf_vrm_parse_json_humanoid(cgltf_options* options, jsmntok_t const* token
     {
       cgltf_vrm_humanoid_bone *bone = &out->human_bones[j];
 
-      CGLTF_CHECK_KEY(tokens[i]);
-      i = cgltf_parse_json_string(options, tokens, i, json_chunk, &bone->name);
+        if (tokens[i].type == JSMN_OBJECT) {
+            // the object looks like this:
+            //{
+            //  "bone": "hips",
+            //  "node": 1,
+            //  "useDefaultValues": true
+            //}
+            int object = i; // remember where the object was
+            i += 1;
+            for (int k = 0; k < 3; ++k) {
+                if (cgltf_json_strcmp(tokens + i, json_chunk, "bone") == 0) {
+                    i += 1; // skip "bone"
+                    i = cgltf_parse_json_string(options, tokens, i, json_chunk, &bone->name);
+                }
+                if (cgltf_json_strcmp(tokens + i, json_chunk, "node") == 0) {
+                    i += 1; // skip "node"
+                    int nodeIndex = cgltf_json_to_int(tokens + i, json_chunk); // this just adds 1
+                    bone->node = CGLTF_PTRINDEX(cgltf_node, nodeIndex);
+                    i = cgltf_skip_json(tokens, i);
+                }
 
-      i += 2;
-      bone->node = CGLTF_PTRINDEX(cgltf_node, cgltf_json_to_int(tokens + i, json_chunk));
-      i = cgltf_skip_json(tokens, i);
+                /*if (cgltf_json_strcmp(tokens + i, json_chunk, "useDefaultValues") == 0) {
+                    i += 1; // skip "useDefaultValues"
+                    // this value is not currently tracked
+                    if (cgltf_json_strcmp(tokens + i, json_chunk, "true") == 0) {
+                        //printf("useDefaultValues\n");
+                    } else {
+                        //printf("not useDefaultValues\n");
+                    }
+                    i = cgltf_skip_json(tokens, i);
+                }*/
+            }
+            i = cgltf_skip_json(tokens, object); // skip all the other data in this object
+        } else {
+            // this clause is what the original code did, is it correct?
+            CGLTF_CHECK_KEY(tokens[i]);
+            i = cgltf_parse_json_string(options, tokens, i, json_chunk, &bone->name);
+
+            i += 2;
+            bone->node = CGLTF_PTRINDEX(cgltf_node, cgltf_json_to_int(tokens + i, json_chunk));
+            i = cgltf_skip_json(tokens, i);
+        }
     }
   }
 
@@ -2015,7 +2051,7 @@ cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data
       return result;
     }
 
-    if ((strcmp(ext->name, "VRMC_vrm") == 0) || (strcmp(ext->name, "vrm") == 0))
+    if ((strcmp(ext->name, "VRMC_vrm") == 0) || (strcmp(ext->name, "VRM") == 0))
     {
       cgltf_vrm_parse_json_vrm(&fixed_options, tokens, 0, (uint8_t const*)json_chunk, &vrm->core);
     }
@@ -2075,7 +2111,7 @@ cgltf_result cgltf_vrm_parse_cgltf_data(cgltf_options const* options, cgltf_data
     cgltf_extension *ext = cgltf_vrm_get_material_extension(&gltf->materials[i], "VRMC_materials_mtoon");
     if (ext == NULL)
     {
-      extension *ext = cgltf_vrm_get_material_extension(&gltf->materials[i], "materials_mtoon");
+      ext = cgltf_vrm_get_material_extension(&gltf->materials[i], "materials_mtoon");
     }
 
     if (ext != NULL)
